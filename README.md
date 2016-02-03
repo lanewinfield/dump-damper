@@ -24,7 +24,7 @@ Wiring
 
 This wiring diagram's shit, but might as well share it anyway.
 
-<img src="https://github.com/lanewinfield/dump_damper/blob/master/dump_damper_wiring.png" width="500px" />
+<img src="https://github.com/lanewinfield/dump-damper/blob/master/dump_damper_wiring.png" width="500px" />
 
 Dependencies
 ---------
