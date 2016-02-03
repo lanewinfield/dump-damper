@@ -18,6 +18,8 @@ Hardware
 * [Monochrome 128x32 SPI OLED](https://www.adafruit.com/products/661)
 * [PIR Sensor](https://www.adafruit.com/products/189)
 * [Rotary Encoder](https://www.adafruit.com/products/377)
+* [Adafruit Mono 2.5W Class D Audio Amplifier](https://www.adafruit.com/product/2130)
+* [3" Speaker](https://www.adafruit.com/products/1313)
 
 Wiring
 ---------
