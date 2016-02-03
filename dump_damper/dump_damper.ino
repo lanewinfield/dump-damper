@@ -260,52 +260,7 @@ void changeVolume(int volChange) {
   volume += volumeToChange;
 }
 
-/*
-uint16_t volumeUp() {
-  uint16_t v;
-  stopPlayback();
-  /*if (volume == 30) {
-    
-  } else { 
-    volume++;
-    v = sfx.volUp();
-    // v = sfx.volUp();
-    // v = sfx.volUp();
-  /* }
-  playCurrentTrack();
-  return v;
-}
-
-uint16_t volumeDown() {
-  uint16_t v;
-  stopPlayback();
-  /* if (volume == 0) {
-    
-  } else { 
-    volume--;
-    v = sfx.volDown();
-    // v = sfx.volDown();
-    // v = sfx.volDown();
-  }
-  playCurrentTrack();
-  return v;
-} */
-
 void trackController (int change) {
-  /* uint32_t current = 0, total;
-  if (! sfx.trackTime(&current, &total) ) Serial.println("Failed to query");
-     display.clearDisplay();
-   display.setCursor(0,0);
-   display.println("Current ");
-   display.println(current);
-   display.display();
-   delay(500);
-    if (current > 0) {
-      //  sfx.stop();
-    display.println("Stopping ");
-   display.display();
-   delay(500);
-  } */
   if (change == 1) { // track up
     trackUp();
   } else if (change == 0) { // track down
@@ -382,17 +337,8 @@ boolean currentlyMotion() {
   int sense = digitalRead(PIR_PIN);  // Read PIR Sensor
   if(sense == HIGH) {     //  currently motion
     return true;
-    /* if(pirState == LOW) { //  wasn't motion before
-      pirState = HIGH; // already had motion
-      return true;
-    } */
   } else { // currently no motion
     return false;
-    /*
-    if(pirState == HIGH) {  // and was motion before
-      pirState = LOW; // 
-      return false;
-    } */
   }
 }
 
@@ -419,26 +365,6 @@ void showPoop(const unsigned char * poop) {
   display.clearDisplay();
   display.drawBitmap(0, 0, poop, 128, 32, WHITE);
   display.display();
-}
-
-void showIdlePoop() {
-  display.clearDisplay();
-//   display.drawBitmap(0, 0, idlePoop, 128, 32, WHITE);
-  display.display();
-  while (!hasStarted) {
-      display.setCursor(10,60);
-      display.setTextColor(BLACK);
-      display.print("z");
-      delay(1000);
-      display.setCursor(15,65);
-      display.setTextColor(BLACK);
-      display.print("z");
-      delay(1000);
-      display.setCursor(20,70);
-      display.setTextColor(BLACK);
-      display.print("z");
-      delay(1000);
-  }
 }
 
 void idlePoopHandler() {
