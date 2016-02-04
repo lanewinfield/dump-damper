@@ -89,7 +89,7 @@
   
     int volume = 50;
     int volumeToChange = 0;
-    boolean volume_mode = false;
+    boolean volume_mode = true;
   
   // UI SETUP
   
