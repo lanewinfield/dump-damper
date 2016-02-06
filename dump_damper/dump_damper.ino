@@ -81,7 +81,7 @@
     // Adafruit_Soundboard sfx = Adafruit_Soundboard(&Serial1, NULL, SFX_RST);
     
     uint8_t currentTrack = 1;
-    uint8_t alertTrack = 3;
+    uint8_t alertTrack = 4;
     uint8_t numTracks, files;
     int trackToChange = 0;
   
@@ -261,6 +261,7 @@ void changeVolume(int volChange) {
 }
 
 void trackController (int change) {
+  UITimer.restart(); // hold for UI changes
   if (change == 1) { // track up
     trackUp();
   } else if (change == 0) { // track down
@@ -353,7 +354,7 @@ void startAudio() {
   hasStarted = true;
   ampOn();
   showPoop(happyPoop);
-  sfx.playTrack(3);
+  sfx.playTrack(alertTrack);
   while (currentlyPlaying()) {
     delay(10);
   }
@@ -489,6 +490,11 @@ void setup()
   // GO DIRECT TO IDLE, DO NOT COLLECT $200
   
     goIdle();
+
+  // DEBUG STARTING VOLUME LOW
+
+    volumeToChange = -30;
+    knobActionHandler(); // set a reasonable volume
     
 }
  
@@ -520,6 +526,7 @@ void loop() {
 
  if(UITimer.onExpired()) { // Note when the UI overlay is inactive
   UIactive = false;
+  if(hasStarted) showPoop(soundPoop);
  }
 
  if(hasStarted && ! currentlyPlaying()) { // Loop the audio if we're still poopin'
