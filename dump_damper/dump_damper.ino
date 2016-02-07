@@ -54,9 +54,20 @@
     #define TRINKET_PINx       PIND
     #define PIN_ENCODER_SWITCH 4
 
+  // SONAR SENSOR
+
+    #define SONAR_PIN 17
+
+    int trigger_distance = 50;
+    int8_t arraysize = 9;
+    uint16_t rangevalue[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    uint16_t modE;   
+
+  /*
   // PIR SENSOR
 
     #define PIR_PIN 17
+    */
 
 
 // VARS SETUP
@@ -67,6 +78,8 @@
     static uint8_t enc_prev_pos   = 0;
     static uint8_t enc_flags      = 0;
     static char    sw_was_pressed = 0;
+
+    static uint8_t knob_limit;
   
   // VFX SETUP
   
@@ -105,13 +118,60 @@
     RBD::Timer knobTimer;
     RBD::Timer animationTimer;
     RBD::Timer UITimer;
+    RBD::Timer motionCheckTimer;
+    
     boolean hasStarted = false;
   
   // ANIMATION SETUP
   
     int animationStage = 0;
 
+void isort(uint16_t *a, int8_t n){
+  for (int i = 1; i < n; ++i)  {
+    uint16_t j = a[i];
+    int k;
+    for (k = i - 1; (k >= 0) && (j < a[k]); k--) {
+      a[k + 1] = a[k];
+    }
+    a[k + 1] = j;
+  }
+}
+
+uint16_t mode(uint16_t *x,int n){
+  int i = 0;
+  int count = 0;
+  int maxCount = 0;
+  uint16_t mode = 0;
+  int bimodal;
+  int prevCount = 0;
+  while(i<(n-1)){
+    prevCount=count;
+    count=0;
+    while( x[i]==x[i+1] ) {
+      count++;
+      i++;
+    }
+    if( count > prevCount & count > maxCount) {
+      mode=x[i];
+      maxCount=count;
+      bimodal=0;
+    }
+    if( count == 0 ) {
+      i++;
+    }
+    if( count == maxCount ) {      //If the dataset has 2 or more modes.
+      bimodal=1;
+    }
+    if( mode==0 || bimodal==1 ) {  // Return the median if there is no mode.
+      mode=x[(n/2)];
+    }
+    return mode;
+  }
+}
+
+
 void knobHandler() {
+  knob_limit++;
   int8_t enc_action = 0; // 1 or -1 if moved, sign is direction
  
   // note: for better performance, the code will use
@@ -238,10 +298,20 @@ void volumeController (int change) {
     }
   }
   knobTimer.restart();
+  displayVolume(volume + volumeToChange);
+  /*
   display.clearDisplay();
   display.setCursor(0,0);
   display.println("Volume:");
   display.println(volume + volumeToChange);
+  display.display(); */
+}
+
+void displayVolume (int vol) {
+  int displayVol = vol*2.56;
+  display.clearDisplay();
+  if (displayVol = 0) displayVol = 1;
+  display.fillRect(0, 0, displayVol, 32, WHITE);
   display.display();
 }
 
@@ -334,6 +404,7 @@ void goIdle() {
   ampOff();
 }
 
+/* FOR PIR
 boolean currentlyMotion() {
   int sense = digitalRead(PIR_PIN);  // Read PIR Sensor
   if(sense == HIGH) {     //  currently motion
@@ -341,8 +412,38 @@ boolean currentlyMotion() {
   } else { // currently no motion
     return false;
   }
-}
+} */ 
 
+// FOR SONAR
+void currentlyMotion() {
+  int16_t pulse;  // number of pulses from sensor
+  int i=0;
+  
+  while( i < arraysize )
+  {                   
+    pulse = pulseIn(SONAR_PIN, HIGH);  // read in time for pin to transition
+    rangevalue[i]=pulse/58;         // pulses to centimeters (use 147 for inches)
+    if( rangevalue[i] < 645 && rangevalue[i] >= 15 ) i++;  // ensure no values out of range
+    delay(10);                      // wait between samples
+  }
+  isort(rangevalue,arraysize);        // sort samples
+  modE = mode(rangevalue,arraysize);  // get median
+  if (modE <= trigger_distance) { // if close enough
+    if(!hasStarted){ // ...and haven't already started playing audio...
+     startAudio(); // ...play audio.
+    }
+    /* UITimer.restart();
+     display.clearDisplay();
+     display.setCursor(0,0);
+     display.println("Distance");
+     display.println(modE);
+     display.display(); */
+    
+    timer.restart(); // (and everytime you detect motion, restart the timer)
+  } else {
+  }
+}
+ 
 void debugScreen(String message) {
    display.clearDisplay();
    display.setCursor(0,0);
@@ -473,16 +574,23 @@ void setup()
     
     ampOff(); // set Amp off to start
 
- 
+  /*
   // PIR SETUP
   
     pinMode(PIR_PIN, INPUT); // Initial state is low
+    */
+
+  // SONAR SETUP
+
+    pinMode(SONAR_PIN, INPUT); 
 
   // TIMER SETUP
   
-    timer.setTimeout(180000); // MAIN TIMEOUT FOR SOUND EFFECTS
+    timer.setTimeout(15000); // MAIN TIMEOUT FOR SOUND EFFECTS
     knobTimer.setTimeout(1200); // Knob interaction timeout
     UITimer.setTimeout(1200); // UI overlay timeout
+    motionCheckTimer.setTimeout(2000); // how often to check for distance
+    motionCheckTimer.restart();
   
     showPoop(happyPoop);
     delay(1000);
@@ -500,12 +608,10 @@ void setup()
  
 void loop() {
  knobHandler(); // deal with the rotary encoder
- 
- if(currentlyMotion()) { // when motion detected...
-  if(!hasStarted){ // ...and haven't already started playing audio...
-   startAudio(); // ...play audio.
-  }
-  timer.restart(); // (and everytime you detect motion, restart the timer)
+
+ if(motionCheckTimer.onExpired()) {
+  currentlyMotion();
+  motionCheckTimer.restart();
  }
 
  if(timer.onRestart()) { // go idle if no motion detected
@@ -522,6 +628,7 @@ void loop() {
 
  if(UITimer.onActive()) { // Note when the UI overlay is active
   UIactive = true;
+ 
  }
 
  if(UITimer.onExpired()) { // Note when the UI overlay is inactive
