@@ -299,15 +299,9 @@ void volumeController (int change) {
   }
   knobTimer.restart();
   displayVolume(volume + volumeToChange);
-  /*
-  display.clearDisplay();
-  display.setCursor(0,0);
-  display.println("Volume:");
-  display.println(volume + volumeToChange);
-  display.display(); */
 }
 
-void displayVolume (int vol) {
+void displayVolume (int vol) { // pretty volume screen
   int displayVol = vol*2.56;
   display.clearDisplay();
   if (displayVol = 0) displayVol = 1;
